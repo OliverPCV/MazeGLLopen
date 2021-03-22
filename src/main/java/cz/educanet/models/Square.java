@@ -14,6 +14,8 @@ public class Square {
 
     private float[] color;
 
+
+
     public int vaoId;
     private int vboId;
     private int eboId;

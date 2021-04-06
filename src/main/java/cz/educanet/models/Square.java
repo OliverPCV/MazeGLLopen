@@ -32,64 +32,50 @@ public class Square {
 
     public Square(float x, float y, float width, float height) {
         vertices = new float[12];
-        // Generate all the ids
         squareVaoId = GL33.glGenVertexArrays();
 
         squareVboId = GL33.glGenBuffers();
         squareEboId = GL33.glGenBuffers();
         colorsId = GL33.glGenBuffers();
 
-
-        //set verticies
         for (int i = 0; i < 4; i++) {
-
-            vertices[i * 3] = x + width * (i % 2);
+            vertices[i * 3] = width * (i % 2) + x;
             vertices[i * 3 + 1] = y - width * (Math.round(i / 2));
             vertices[i * 3 + 2] = 0.0f;
-
         }
 
-        // Tell OpenGL we are currently using this object (vaoId)
         GL33.glBindVertexArray(squareVaoId);
 
-        // Tell OpenGL we are currently writing to this buffer (eboId)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, squareEboId);
         IntBuffer ib = BufferUtils.createIntBuffer(indices.length)
                 .put(indices)
                 .flip();
         GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, ib, GL33.GL_STATIC_DRAW);
 
-        // Change to VBOs...
-        // Tell OpenGL we are currently writing to this buffer (vboId)
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, squareVboId);
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(vertices.length)
                 .put(vertices)
                 .flip();
 
-        // Send the buffer (positions) to the GPU
         GL33.glBufferData(GL33.GL_ARRAY_BUFFER, fb, GL33.GL_STATIC_DRAW);
         GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(0);
 
-        // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
         MemoryUtil.memFree(fb);
 
-        // Change to Color...
-        // Tell OpenGL we are currently writing to this buffer (colorsId)
+
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorsId);
 
         cb = BufferUtils.createFloatBuffer(colors.length)
                 .put(colors)
                 .flip();
 
-        // Send the buffer (positions) to the GPU
         GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
         GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(1);
 
-        // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
-        //MemoryUtil.memFree(cb);
+
 
     }
 
@@ -97,15 +83,12 @@ public class Square {
     }
 
     public void draw() {
-        //GL33.glUseProgram(Shaders.shaderProgramId);
         GL33.glBindVertexArray(squareVaoId);
         GL33.glDrawElements(GL33.GL_TRIANGLES, indices.length, GL33.GL_UNSIGNED_INT, 0);
 
-        //update colors
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorsId);
         cb.put(colors).flip();
         GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
-        //MemoryUtil.memFree(cb);
     }
 
 

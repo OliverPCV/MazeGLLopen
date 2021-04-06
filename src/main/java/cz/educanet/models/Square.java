@@ -9,7 +9,7 @@ import java.nio.IntBuffer;
 
 public class Square {
 
-    private float[] vertices;
+
     private static final int[] indices = {
             0, 1, 2, // First triangle
             1, 2, 3, // Second triangle
@@ -31,7 +31,12 @@ public class Square {
     private FloatBuffer cb;
 
     public Square(float x, float y, float width, float height) {
-        vertices = new float[12];
+        float[] vertices = {
+                -1.0f, 1.0f, 1.0f,
+                -1.0f, 1.0f, 1.0f,
+                -1.0f, 1.0f, 1.0f,
+                -1.0f, 1.0f, 1.0f,
+        };
         squareVaoId = GL33.glGenVertexArrays();
 
         squareVboId = GL33.glGenBuffers();
@@ -41,7 +46,6 @@ public class Square {
         for (int i = 0; i < 4; i++) {
             vertices[i * 3] = width * (i % 2) + x;
             vertices[i * 3 + 1] = y - width * (Math.round(i / 2));
-            vertices[i * 3 + 2] = 0.0f;
         }
 
         GL33.glBindVertexArray(squareVaoId);

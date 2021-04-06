@@ -15,81 +15,52 @@ import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
+
 public class Game {
 
-    private static Square square;
-    private static float squareSize; //Square size
-    private static String mazeNumbers;
-    private static int mazeWidth;
-    private static int mazeHeight;
 
+    private static ArrayList<Square> squares = new ArrayList<Square>();
+
+    private static String[] maze;
+    private static float tileScaleX;
+    private static float tileScaleY;
+    private static float t = 0f;
 
     public static void init(long window) {
-        squareSize = 1.0f/((float)mazeWidth/2);
-        float[] vertices = {  //square origin point is in Bottom Left
-                x + squareSize  ,y + squareSize, 0.0f, // 0 -> Top    Right
-                x + squareSize  ,y             , 0.0f, // 1 -> Bottom Right
-                x               ,y             , 0.0f, // 2 -> Bottom Left
-                x               ,y + squareSize, 0.0f, // 3 -> Top    Left
-        };
-
-        float[] colors = {
-                1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 0.0f,
-        };
-
-        int[] indices = {
-                0, 1, 3, // First triangle
-                1, 2, 3 // Second triangle
-        };
-
-        square = new Square(vertices, indices, colors);
-
         // Setup shaders
         Shaders.initShaders();
-    }
-
-    public static void readMaze(){
-        String mazeLoc = "src/main/resources/maze";
-        File mazeFile = new File(mazeLoc);
+        //setup maze
+        maze = FileUtils.readFile("src/main/resources/maze").split("\n");
 
 
-        if(mazeFile.exists() && mazeFile.canRead()){
-            mazeNumbers = FileUtils.readFile(mazeLoc);
+        //construct maze
+        tileScaleX = 2.0f / maze[0].length() ;
+        tileScaleY = 2.0f / maze.length;
+        for (int y = 0;y < maze.length;y++){
+            String line = maze[y];
+            for(int x = 0;x < line.length();x++){
+                if (line.charAt(x) == '1') {
+                    squares.add(new Square(x*tileScaleX-1,(y*tileScaleY)*-1+1,tileScaleX,tileScaleY));
+                }
+            }
         }
-
-
-
-
-        mazeWidth = mazeNumbers.indexOf("\n");
-        System.out.println("Maze Rows: " + mazeHeight + "\nMaze Cols: " + mazeWidth);
-
-        try (Stream<Path> files = Files.list(Paths.get("src/main/resources/maze"))) {
-            mazeHeight = (int) files.count();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
     }
 
     public static void render(long window) {
         GL33.glUseProgram(Shaders.shaderProgramId);
 
-        // Draw using the glDrawElements function
-
-        GL33.glBindVertexArray(square.vaoId);
-        GL33.glDrawElements(GL33.GL_TRIANGLES, square.indices.length, GL33.GL_UNSIGNED_INT, 0);
+        for (Square square : squares){
+            square.draw();
+        }
     }
 
     public static void update(long window) {
-
+        t += 0.0015f;
     }
-
 }
 

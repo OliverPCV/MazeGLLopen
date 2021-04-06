@@ -10,39 +10,58 @@ import java.nio.IntBuffer;
 public class Square {
 
     private float[] vertices;
-    public int[] indices;
+    private static final int[] indices = {
+            0, 1, 2, // First triangle
+            1, 2, 3, // Second triangle
 
-    private float[] color;
+    };
+
+    private float[] colors = {
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+    };
+
+    private int squareVaoId;
+    private int squareVboId;
+    private int squareEboId;
+    private int colorsId;
+
+    private FloatBuffer cb;
+
+    public Square(float x, float y, float width, float height) {
+        vertices = new float[12];
+        // Generate all the ids
+        squareVaoId = GL33.glGenVertexArrays();
+
+        squareVboId = GL33.glGenBuffers();
+        squareEboId = GL33.glGenBuffers();
+        colorsId = GL33.glGenBuffers();
 
 
+        //set verticies
+        for (int i = 0; i < 4; i++) {
 
-    public int vaoId;
-    private int vboId;
-    private int eboId;
-    private int colorId;
+            vertices[i * 3] = x + width * (i % 2);
+            vertices[i * 3 + 1] = y - width * (Math.round(i / 2));
+            vertices[i * 3 + 2] = 0.0f;
 
-    public Square(float[] vertices, int[] indices, float[] color) {
-        vaoId = GL33.glGenVertexArrays();
-        vboId = GL33.glGenBuffers();
-        eboId = GL33.glGenBuffers();
-        colorId = GL33.glGenBuffers();
+        }
 
-        this.vertices = vertices;
-        this.indices = indices;
-        this.color = color;
-
-        GL33.glBindVertexArray(vaoId); // Tell OpenGL I am using this square
+        // Tell OpenGL we are currently using this object (vaoId)
+        GL33.glBindVertexArray(squareVaoId);
 
         // Tell OpenGL we are currently writing to this buffer (eboId)
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, eboId);
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, squareEboId);
         IntBuffer ib = BufferUtils.createIntBuffer(indices.length)
                 .put(indices)
                 .flip();
         GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, ib, GL33.GL_STATIC_DRAW);
 
-
+        // Change to VBOs...
         // Tell OpenGL we are currently writing to this buffer (vboId)
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vboId);
+        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, squareVboId);
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(vertices.length)
                 .put(vertices)
@@ -53,12 +72,15 @@ public class Square {
         GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(0);
 
+        // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
+        MemoryUtil.memFree(fb);
 
+        // Change to Color...
         // Tell OpenGL we are currently writing to this buffer (colorsId)
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorId);
+        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorsId);
 
-        FloatBuffer cb = BufferUtils.createFloatBuffer(color.length)
-                .put(color)
+        cb = BufferUtils.createFloatBuffer(colors.length)
+                .put(colors)
                 .flip();
 
         // Send the buffer (positions) to the GPU
@@ -66,7 +88,25 @@ public class Square {
         GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(1);
 
-        MemoryUtil.memFree(fb);
-        MemoryUtil.memFree(cb);
+        // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
+        //MemoryUtil.memFree(cb);
+
     }
+
+    public Square(float[] arr, int[] arr2, float[] arr1) {
+    }
+
+    public void draw() {
+        //GL33.glUseProgram(Shaders.shaderProgramId);
+        GL33.glBindVertexArray(squareVaoId);
+        GL33.glDrawElements(GL33.GL_TRIANGLES, indices.length, GL33.GL_UNSIGNED_INT, 0);
+
+        //update colors
+        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorsId);
+        cb.put(colors).flip();
+        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
+        //MemoryUtil.memFree(cb);
+    }
+
+
 }
